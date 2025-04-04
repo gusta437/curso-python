@@ -1,3 +1,5 @@
+
+
 import tkinter 
 
 root = tkinter.Tk()
@@ -7,7 +9,7 @@ root.geometry("800x600")
 labelFrase = tkinter.Label(root,
                            text="Olâ progamador",
                            font=("chiller" , 100),
-                           fg='magenta',)
+                           fg='black',)
                            
 labelFrase.pack (padx=5,pady=5)
 
@@ -24,7 +26,37 @@ buttonGravar = tkinter.Button(root,
                         commando=None )
 
 
-buttonGravar.pack(padx=10, pady=10)
+buttonGravar.pack(padx=10, pady=10) 
+
+entryNome = tkinter.Entry(root, width=100)
+entryNome.pack(padx=99, pady=5)
+
+buttonGravar = tkinter.Button(root,
+                        text='gravar',
+                        commando=None )
+
+
+buttonGravar.pack(padx=10, pady=10) 
+
+entryNome = tkinter.Entry(root, width=100)
+entryNome.pack(padx=99, pady=5)
+
+buttonGravar = tkinter.Button(root,
+                        text='gravar',
+                        commando=None )
+
+
+buttonGravar.pack(padx=10, pady=10) 
+
+entryNome = tkinter.Entry(root, width=100)
+entryNome.pack(padx=99, pady=5)
+
+buttonGravar = tkinter.Button(root,
+                        text='gravar',
+                        commando=None )
+
+
+buttonGravar.pack(padx=10, pady=10) 
 
 root.mainloop()
 
@@ -41,24 +73,4 @@ root.mainloop()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ 
