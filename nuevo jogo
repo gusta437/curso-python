@@ -1,0 +1,196 @@
+import pygame
+import random
+import sys
+
+# Inicialização
+pygame.init()
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Tiro Do GuGu - Tela Inicial")
+clock = pygame.time.Clock()
+
+# Carregando imagens
+bg = pygame.image.load("galaxy.jpg").convert()
+bg = pygame.transform.scale(bg, (WIDTH, HEIGHT))
+
+player_img = pygame.image.load("jet.png").convert_alpha()
+player_img = pygame.transform.scale(player_img, (80, 80))
+
+enemy_img = pygame.image.load("enemy.png").convert_alpha()
+enemy_img = pygame.transform.scale(enemy_img, (80, 80))
+
+bullet_img = pygame.Surface((8, 20))
+bullet_img.fill((255, 255, 0))
+
+# Fontes
+font = pygame.font.SysFont(None, 36)
+title_font = pygame.font.SysFont(None, 60)
+
+# Classes
+class Player:
+    def __init__(self):
+        self.x = WIDTH // 2
+        self.y = HEIGHT - 100
+
+    def draw(self):
+        screen.blit(player_img, (self.x, self.y))
+
+class Bullet:
+    def __init__(self, x, y):
+        self.rect = pygame.Rect(x + 36, y, 8, 20)
+
+    def update(self):
+        self.rect.y -= 10
+
+    def draw(self):
+        screen.blit(bullet_img, self.rect)
+
+class Enemy:
+    def __init__(self):
+        self.x = random.randint(0, WIDTH - 80)
+        self.y = random.randint(-150, -40)
+        self.speed = random.randint(2, 5)
+        self.rect = pygame.Rect(self.x, self.y, 80, 80)
+
+    def update(self):
+        self.y += self.speed
+        self.rect.topleft = (self.x, self.y)
+
+    def draw(self):
+        screen.blit(enemy_img, (self.x, self.y))
+
+# Desenha botão
+def draw_button(text, x, y, w, h, color):
+    rect = pygame.Rect(x, y, w, h)
+    pygame.draw.rect(screen, color, rect, border_radius=10)
+    label = font.render(text, True, (255, 255, 255))
+    screen.blit(label, (x + (w - label.get_width()) // 2, y + (h - label.get_height()) // 2))
+    return rect
+
+# Tela inicial com botão Play
+def show_start_screen():
+    while True:
+        screen.blit(bg, (0, 0))
+        title = title_font.render("Tiro Espacial", True, (255, 255, 255))
+        screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 150))
+
+        play_button = draw_button("Jogar", 300, 300, 200, 60, (0, 120, 255))
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit(); sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if play_button.collidepoint(event.pos):
+                    return
+
+# Escolhe dificuldade
+def choose_difficulty():
+    while True:
+        screen.blit(bg, (0, 0))
+        title = title_font.render("Escolha a Dificuldade", True, (255, 255, 255))
+        screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 100))
+
+        easy_btn = draw_button("Fácil", 300, 200, 200, 60, (0, 180, 80))
+        medium_btn = draw_button("Médio", 300, 300, 200, 60, (255, 165, 0))
+        hard_btn = draw_button("Difícil", 300, 400, 200, 60, (200, 0, 0))
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit(); sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if easy_btn.collidepoint(event.pos):
+                    return 3
+                if medium_btn.collidepoint(event.pos):
+                    return 6
+                if hard_btn.collidepoint(event.pos):
+                    return 10
+
+# Tela de fim (vitória ou derrota)
+def end_screen(text):
+    while True:
+        screen.blit(bg, (0, 0))
+        label = title_font.render(text, True, (255, 255, 255))
+        screen.blit(label, (WIDTH // 2 - label.get_width() // 2, HEIGHT // 2 - 30))
+
+        restart_btn = draw_button("Jogar Novamente", 280, 400, 240, 60, (100, 100, 255))
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit(); sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if restart_btn.collidepoint(event.pos):
+                    main()
+
+# Jogo principal
+def main():
+    show_start_screen()
+    num_enemies = choose_difficulty()
+
+    player = Player()
+    bullets = []
+    enemies = [Enemy() for _ in range(num_enemies)]
+    score = 0
+    goal = 20
+    lives = 3
+
+    running = True
+    while running:
+        screen.blit(bg, (0, 0))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                bullets.append(Bullet(player.x, player.y))
+
+        # Movimento do player com o mouse
+        mouse_x, _ = pygame.mouse.get_pos()
+        player.x = mouse_x - 40
+        player.draw()
+
+        for bullet in bullets[:]:
+            bullet.update()
+            bullet.draw()
+            if bullet.rect.y < 0:
+                bullets.remove(bullet)
+
+        for enemy in enemies[:]:
+            enemy.update()
+            enemy.draw()
+
+            for bullet in bullets[:]:
+                if enemy.rect.colliderect(bullet.rect):
+                    enemies.remove(enemy)
+                    bullets.remove(bullet)
+                    score += 1
+                    enemies.append(Enemy())
+                    break
+
+            if enemy.y > HEIGHT:
+                enemies.remove(enemy)
+                enemies.append(Enemy())
+                lives -= 1
+
+        # HUD
+        score_text = font.render(f"Pontos: {score}", True, (255, 255, 255))
+        lives_text = font.render(f"Vidas: {lives}", True, (255, 0, 0))
+        screen.blit(score_text, (10, 10))
+        screen.blit(lives_text, (10, 40))
+
+        # Fim de jogo
+        if score >= goal:
+            end_screen("🎉 Você Venceu!")
+        if lives <= 0:
+            end_screen("💀 Game Over")
+
+        pygame.display.flip()
+        clock.tick(60)
+
+    pygame.quit()
+
+main()
