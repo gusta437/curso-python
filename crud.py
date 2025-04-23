@@ -1,10 +1,53 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
+import json
 
-def carregar_pets():
+def salvar_para_json():
+    if not pets:
+        messagebox.showwarning("Aviso", "Não há pets !")
+        return
+    
+    # Abre a janela para selecionar onde salvar o arquivo
+    arquivo = filedialog.asksaveasfilename(
+        defaultextension=".json",
+        filetypes=[("Arquivos JSON", "*.json")],
+        title="Salvar lista de pets como JSON"
+    )
+    
+    if not arquivo:  # Se o usuário cancelar
+        return
+    
+    try:
+        with open(arquivo, 'w', encoding='utf-8') as f:
+            json.dump(pets, f, ensure_ascii=False, indent=4)
+        messagebox.showinfo("Sucesso", f"Dados salvos com sucesso em:\n{arquivo}")
+    except Exception as e:
+        messagebox.showerror("Erro", f"Ocorreu um erro ao salvar:\n{str(e)}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def carregar_pets(pets_list = None):
     for item in tree.get_children():
         tree.delete(item)
-    for pet in pets:
+    
+    pets_to_load = pets_list if pets_list is not None else pets
+
+    
+    
+    for pet in pets_to_load:
         tree.insert('', 'end', values=(
             pet['id'],
             pet['tutor'],     
@@ -12,7 +55,13 @@ def carregar_pets():
             pet['especie'],
             pet['raca'],            
             pet['idade']
-        ))
+        ))  
+
+
+
+
+
+
 
 
 
@@ -145,7 +194,23 @@ def remover_pet():
         limpar_campos()
         carregar_pets()
 
+def pesquisar_por_tutor():
+    termo_pesquisar = entry_tutor.get().lower()
 
+    if not termo_pesquisar:
+        carregar_pets()
+
+        return
+    
+    pets_encotrados = [pet for pet in pets
+                       if termo_pesquisar in pet ['tutor'].lower()]
+    
+    if not pets_encotrados:
+        messagebox.showinfo('pesquisa',
+                           'nenhum pet encontrado para este tutor' )
+        carregar_pets
+    else:
+        carregar_pets(pets_encotrados) 
 
 
 pets = []
@@ -248,6 +313,20 @@ btn_limpar = ttk.Button(frame_botoes,
                            )
 btn_limpar.grid(row=0, column=3, padx=5)
 
+
+
+btn_pesquisar = ttk.Button(frame_botoes,
+                           text='pesquisar',
+                           command=pesquisar_por_tutor
+                           )
+btn_pesquisar.grid(row=0, column=4, padx=5)
+
+btn_salvar_json = ttk.Button(frame_botoes,
+                           text='Salvar Json',
+                           command=salvar_para_json
+                           )
+btn_salvar_json.grid(row=0, column=4, padx=5)
+
 frame_tabela = ttk.Frame(root)
 frame_tabela.pack(padx=15, pady=10,
                   fill='both', expand=True)
@@ -299,3 +378,28 @@ tree.bind('<<TreeviewSelect>>', selecionar_pet)
 
 
 root.mainloop() 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
